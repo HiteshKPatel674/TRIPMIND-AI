@@ -1,101 +1,288 @@
 <div align="center">
-  <img src="https://placehold.co/120x120/f59e0b/ffffff?text=TM" alt="TripMind AI Logo" width="120" height="120">
-  
-  # TripMind AI ✈️
-  
-  **Your Premium AI-Powered Travel Architect**
-  
-  [![Status: Ongoing](https://img.shields.io/badge/Status-Ongoing_Project-f59e0b?style=for-the-badge&logo=github)](https://github.com/HiteshKPatel674/TRIPMIND-AI)
-  [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-  [![Django](https://img.shields.io/badge/Django-4.2+-092E20?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
-  
-  <p align="center">
-    TripMind AI creates stunning, personalized itineraries in seconds. Complete with integrated flight, hotel, and attraction recommendations in a cinematic user interface.
-  </p>
+
+# TripMind AI
+
+### AI-Powered Intelligent Travel Itinerary Planning Platform
+
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![Django](https://img.shields.io/badge/Django-4.2+-092E20?style=flat-square&logo=django&logoColor=white)](https://www.djangoproject.com/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6-F7DF1E?style=flat-square&logo=javascript&logoColor=black)](https://developer.mozilla.org/)
+[![Status](https://img.shields.io/badge/Status-Active%20Development-success?style=flat-square)]()
+
+An AI-powered travel planning platform that automatically generates personalized travel itineraries using Large Language Models (LLMs), destination intelligence, real-time hotel recommendations, and interactive maps.
+
 </div>
 
 ---
 
-> ⚠️ **Note:** TripMind AI is currently an **ongoing project**. Features are actively being developed, and the architecture is evolving. Expect frequent updates!
+# Overview
 
-## ✨ Features
+TripMind AI is a full-stack web application that simplifies travel planning by combining generative AI with real-time travel information.
 
-- **🤖 AI-Crafted Itineraries**: Generates day-by-day smart itineraries based on your budget, travel style, and preferences.
-- **📸 Intelligent Image Engine**: A sophisticated multi-provider waterfall system (Unsplash -> Pexels -> Wikimedia -> Pollinations.ai) to source high-quality, landmark-specific imagery.
-- **🏨 Smart Booking Integration**: Real-time integration with Google Hotels (via SerpApi) for live pricing and booking links.
-- **🧠 Destination Knowledge Hub**: Aggregates essential travel facts, cultural tips, language, and transport information on the fly.
-- **✨ Cinematic User Interface**: A premium glassmorphic frontend inspired by Apple Maps and Airbnb, featuring smooth transitions and interactive day panels.
-- **🗺️ Interactive Maps**: Built-in Leaflet maps to visualize your journey.
+Instead of manually searching across multiple websites, users provide trip preferences such as destination, budget, travel style, and duration. The platform generates a structured day-by-day itinerary enriched with destination insights, accommodation suggestions, transportation information, and landmark images.
 
-## 🛠️ Tech Stack
-
-- **Backend**: Python, Django
-- **Frontend**: HTML5, Vanilla JS, CSS3 (Custom Premium Design System)
-- **Database**: SQLite (Development)
-- **AI / APIs**: OpenAI/Anthropic (via LangChain), SerpApi (Hotels/Flights), OpenStreetMap/Nominatim, Wikimedia
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Python 3.10+
-- An API key for SerpApi (if fetching live hotels)
-
-### Installation
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/HiteshKPatel674/TRIPMIND-AI.git
-   cd TRIPMIND-AI
-   ```
-
-2. **Set up a virtual environment:**
-   ```bash
-   python -m venv venv
-   # Windows:
-   .\venv\Scripts\activate
-   # macOS/Linux:
-   source venv/bin/activate
-   ```
-
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Environment Variables:**
-   Create a `.env` file in the root directory and add your API keys:
-   ```env
-   SECRET_KEY=your_django_secret_key
-   DEBUG=True
-   SERPAPI_KEY=your_serpapi_key
-   ```
-
-5. **Run Migrations & Start Server:**
-   ```bash
-   python manage.py migrate
-   python manage.py runserver
-   ```
-
-6. **Open your browser:**
-   Navigate to `http://localhost:8000` to start planning your trip!
-
-## 🛣️ Roadmap
-
-- [x] Integrate multi-provider image engine
-- [x] Implement AI-driven knowledge hub
-- [x] Live hotel pricing and mock transport
-- [x] V4 Premium cinematic redesign
-- [ ] Multi-user collaboration on itineraries
-- [ ] Live flight API integration
-- [ ] Export to Calendar (.ics) feature
-- [ ] Mobile app (React Native)
-
-## 🤝 Contributing
-
-Since this is an ongoing project, contributions, issues, and feature requests are highly welcome! Feel free to check the [issues page](https://github.com/HiteshKPatel674/TRIPMIND-AI/issues).
+The project focuses on building scalable AI workflows rather than simply integrating an LLM.
 
 ---
-<div align="center">
-  <i>Built with ❤️ by Hitesh Patel</i>
-</div>
+
+# Key Features
+
+### AI-Powered Itinerary Generation
+
+- Personalized trip plans
+- Day-wise scheduling
+- Budget-aware recommendations
+- Travel preference optimization
+
+---
+
+### Destination Intelligence Engine
+
+Automatically gathers:
+
+- History
+- Culture
+- Language
+- Currency
+- Transportation
+- Safety information
+- Local travel tips
+
+---
+
+### Intelligent Image Pipeline
+
+Multi-source image retrieval system with automatic fallback:
+
+```
+Unsplash
+     ↓
+Pexels
+     ↓
+Wikimedia Commons
+     ↓
+Pollinations AI
+```
+
+Ensures destination-specific, high-quality imagery even when one provider fails.
+
+---
+
+### Smart Hotel Recommendation Engine
+
+- Live hotel recommendations
+- Booking links
+- Price comparison
+- Location-aware suggestions
+
+---
+
+### Interactive Maps
+
+Built using Leaflet and OpenStreetMap to visualize destinations and itinerary locations.
+
+---
+
+### Responsive User Interface
+
+- Fully responsive design
+- Dynamic itinerary timeline
+- Interactive day cards
+- Modern glassmorphism UI
+
+---
+
+# System Architecture
+
+```
+                        User
+                          │
+                          ▼
+                 Frontend (HTML/CSS/JS)
+                          │
+                          ▼
+                    Django Backend
+                          │
+      ┌───────────────────┼────────────────────┐
+      ▼                   ▼                    ▼
+ Destination API      Hotel Service      Image Engine
+      │                   │                    │
+      ▼                   ▼                    ▼
+ Knowledge Hub      Booking Links      Multi-source Images
+                          │
+                          ▼
+                    AI Processing
+                          │
+                          ▼
+                Personalized Itinerary
+```
+
+---
+
+# Technology Stack
+
+## Backend
+
+- Python
+- Django
+- Django Templates
+
+## Frontend
+
+- HTML5
+- CSS3
+- JavaScript (ES6)
+
+## Database
+
+- SQLite (Development)
+
+## AI & External APIs
+
+- LangChain
+- OpenAI / Anthropic
+- SerpAPI
+- OpenStreetMap
+- Nominatim
+- Wikimedia Commons
+- Pollinations AI
+
+---
+
+# Project Structure
+
+```
+TripMind-AI/
+
+├── planner/
+├── templates/
+├── static/
+├── media/
+├── utils/
+├── services/
+├── itinerary/
+├── requirements.txt
+├── manage.py
+└── README.md
+```
+
+---
+
+# Installation
+
+## Clone Repository
+
+```bash
+git clone https://github.com/HiteshKPatel674/TRIPMIND-AI.git
+cd TRIPMIND-AI
+```
+
+## Create Virtual Environment
+
+```bash
+python -m venv venv
+```
+
+Windows
+
+```bash
+venv\Scripts\activate
+```
+
+Linux / macOS
+
+```bash
+source venv/bin/activate
+```
+
+## Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+## Configure Environment Variables
+
+Create a `.env` file.
+
+```env
+SECRET_KEY=
+
+SERPAPI_KEY=
+
+OPENAI_API_KEY=
+```
+
+## Run
+
+```bash
+python manage.py migrate
+
+python manage.py runserver
+```
+
+Open
+
+```
+http://127.0.0.1:8000
+```
+
+---
+
+# Future Improvements
+
+- Flight API integration
+- User authentication
+- Collaborative trip planning
+- PDF itinerary export
+- Calendar integration
+- Payment gateway
+- AI chat assistant
+- Mobile application
+
+---
+
+# Screenshots
+
+> Add screenshots here after completing the UI.
+
+```
+Home Page
+
+Trip Planner
+
+Generated Itinerary
+
+Destination Details
+
+Hotel Recommendations
+```
+
+---
+
+# Engineering Highlights
+
+- Designed modular backend architecture using Django
+- Built an AI-assisted itinerary generation workflow
+- Developed a multi-provider image retrieval pipeline with automatic fallback
+- Integrated real-time hotel recommendation APIs
+- Implemented scalable service-layer architecture
+- Built reusable frontend components with responsive layouts
+
+---
+
+# Current Status
+
+This project is under active development. Core itinerary generation, destination intelligence, hotel recommendations, and image retrieval are implemented, while additional features such as flight booking, authentication, and collaboration are currently in progress.
+
+---
+
+# Author
+
+**Hitesh Patel**
+
+AI/ML Engineer
+
+LinkedIn: *(Add Link)*
+
+Email: *(Add Email)*
