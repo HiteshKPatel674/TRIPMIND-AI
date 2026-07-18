@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}TripMind AI — Explore India Like Never Before{% endblock %}
+{% block meta_description %}AI-powered travel planner that builds cinematic day-by-day itineraries with real places, costs, and maps. Your journey starts here.{% endblock %}
+
+{% block body_class %}landing-page{% endblock %}
+{% block main_class %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/landing.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO SECTION — Fullscreen cinematic with Ken Burns backgrounds
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="hero-cinematic" id="hero" aria-label="Hero">
+    <!-- Ken Burns animated backgrounds -->
+    <div class="hero-ken-burns">
+        <div class="kb-slide" style="background-image: url('https://images.unsplash.com/photo-1506461883276-594a12b11cf3?w=1920&q=80');"></div>
+        <div class="kb-slide" style="background-image: url('https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=1920&q=80');"></div>
+        <div class="kb-slide" style="background-image: url('https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=1920&q=80');"></div>
+        <div class="kb-slide" style="background-image: url('https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=1920&q=80');"></div>
+        <div class="kb-slide" style="background-image: url('https://images.unsplash.com/photo-1477587458883-47145ed94245?w=1920&q=80');"></div>
+        <div class="kb-slide" style="background-image: url('https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?w=1920&q=80');"></div>
+    </div>
+
+    <!-- Gradient overlay -->
+    <div class="hero-overlay"></div>
+
+    <!-- Hero content -->
+    <div class="hero-content">
+        <div class="hero-eyebrow reveal" data-reveal-delay="200">
+            <span class="dot"></span>
+            AI-Powered Travel Planning
+        </div>
+
+        <h1 class="hero-title reveal" data-reveal-delay="400">
+            EXPLORE <span class="text-accent">INDIA</span><br>
+            LIKE NEVER BEFORE
+        </h1>
+
+        <p class="hero-subtitle reveal" data-reveal-delay="600">
+            Tell our AI where you dream of going. Get a cinematic, day-by-day
+            itinerary with real places, costs, and maps — in seconds.
+        </p>
+
+        <div class="hero-actions reveal" data-reveal-delay="800">
+            <a href="{% url 'signup' %}" class="btn-hero-primary" id="hero-cta-primary">
+                Start Planning <i class="bi bi-arrow-right"></i>
+            </a>
+            <a href="#destinations" class="btn-hero-secondary" id="hero-cta-secondary">
+                <i class="bi bi-compass"></i> Explore Destinations
+            </a>
+        </div>
+
+        <!-- Social proof -->
+        <div class="stats-bar reveal" data-reveal-delay="1000">
+            <div class="stat-item">
+                <div class="stat-value" data-counter="2500" data-counter-suffix="+">0</div>
+                <div class="stat-desc">Happy Travelers</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" data-counter="50" data-counter-suffix="+">0</div>
+                <div class="stat-desc">Destinations</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" data-counter="15" data-counter-suffix="k+">0</div>
+                <div class="stat-desc">Itineraries Created</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="scroll-indicator" aria-hidden="true">
+        <div class="mouse"></div>
+        <span>SCROLL</span>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     DESTINATION NAVIGATION
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="dest-nav-section" id="destinations" aria-label="Destinations">
+    <div style="max-width: 1100px; margin: 0 auto;">
+        <div class="section-label reveal">TOP DESTINATIONS</div>
+
+        <ul class="dest-nav-list" data-stagger="80">
+            <li class="dest-nav-item stagger-child">
+                <a href="#dest-goa" class="dest-nav-link">
+                    <span class="dest-nav-num">01</span>
+                    <span class="dest-nav-name">Goa</span>
+                    <span class="dest-nav-arrow">→</span>
+                    <span class="dest-nav-underline"></span>
+                </a>
+            </li>
+            <li class="dest-nav-item stagger-child">
+                <a href="#dest-kashmir" class="dest-nav-link">
+                    <span class="dest-nav-num">02</span>
+                    <span class="dest-nav-name">Kashmir</span>
+                    <span class="dest-nav-arrow">→</span>
+                    <span class="dest-nav-underline"></span>
+                </a>
+            </li>
+            <li class="dest-nav-item stagger-child">
+                <a href="#dest-ladakh" class="dest-nav-link">
+                    <span class="dest-nav-num">03</span>
+                    <span class="dest-nav-name">Ladakh</span>
+                    <span class="dest-nav-arrow">→</span>
+                    <span class="dest-nav-underline"></span>
+                </a>
+            </li>
+            <li class="dest-nav-item stagger-child">
+                <a href="#dest-kerala" class="dest-nav-link">
+                    <span class="dest-nav-num">04</span>
+                    <span class="dest-nav-name">Kerala</span>
+                    <span class="dest-nav-arrow">→</span>
+                    <span class="dest-nav-underline"></span>
+                </a>
+            </li>
+            <li class="dest-nav-item stagger-child">
+                <a href="#dest-meghalaya" class="dest-nav-link">
+                    <span class="dest-nav-num">05</span>
+                    <span class="dest-nav-name">Meghalaya</span>
+                    <span class="dest-nav-arrow">→</span>
+                    <span class="dest-nav-underline"></span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     DESTINATION SECTIONS — Each is a full viewport experience
+     ═══════════════════════════════════════════════════════════════════ -->
+
+<!-- GOA -->
+<section class="dest-section" id="dest-goa" aria-label="Goa">
+    <div class="dest-section-bg" style="background-image: url('https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=1920&q=80');"></div>
+    <div class="dest-section-overlay"></div>
+    <div class="dest-section-content reveal">
+        <span class="dest-section-tag">Beaches · Nightlife · Seafood</span>
+        <h2 class="dest-section-title">Goa</h2>
+        <p class="dest-section-desc">
+            Golden sunsets over Vagator, the pulse of Baga after dark,
+            Portuguese architecture in Old Goa, and the freshest seafood
+            you've ever tasted. Your perfect escape awaits.
+        </p>
+        <div class="dest-section-actions">
+            {% if user.is_authenticated %}
+            <a href="{% url 'chat' %}" class="btn-glass-accent btn-glass">
+                <i class="bi bi-magic"></i> Plan Goa Trip
+            </a>
+            {% else %}
+            <a href="{% url 'signup' %}" class="btn-glass-accent btn-glass">
+                <i class="bi bi-magic"></i> Plan Goa Trip
+            </a>
+            {% endif %}
+            <a href="#how-it-works" class="btn-glass">
+                <i class="bi bi-compass"></i> How It Works
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- KASHMIR -->
+<section class="dest-section" id="dest-kashmir" aria-label="Kashmir">
+    <div class="dest-section-bg" style="background-image: url('https://images.unsplash.com/photo-1506461883276-594a12b11cf3?w=1920&q=80');"></div>
+    <div class="dest-section-overlay"></div>
+    <div class="dest-section-content reveal">
+        <span class="dest-section-tag">Mountains · Gardens · Houseboats</span>
+        <h2 class="dest-section-title">Kashmir</h2>
+        <p class="dest-section-desc">
+            Paradise on Earth. Shikara rides on Dal Lake, saffron fields
+            of Pampore, the Mughal gardens, and snow-capped peaks
+            that take your breath away.
+        </p>
+        <div class="dest-section-actions">
+            {% if user.is_authenticated %}
+            <a href="{% url 'chat' %}" class="btn-glass-accent btn-glass">
+                <i class="bi bi-magic"></i> Plan Kashmir Trip
+            </a>
+            {% else %}
+            <a href="{% url 'signup' %}" class="btn-glass-accent btn-glass">
+                <i class="bi bi-magic"></i> Plan Kashmir Trip
+            </a>
+            {% endif %}
+            <a href="#how-it-works" class="btn-glass">
+                <i class="bi bi-compass"></i> How It Works
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- LADAKH -->
+<section class="dest-section" id="dest-ladakh" aria-label="Ladakh">
+    <div class="dest-section-bg" style="background-image: url('https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?w=1920&q=80');"></div>
+    <div class="dest-section-overlay"></div>
+    <div class="dest-section-content reveal">
+        <span class="dest-section-tag">Landscapes · Monasteries · Adventure</span>
+        <h2 class="dest-section-title">Ladakh</h2>
+        <p class="dest-section-desc">
+            The land of high passes. Pangong Lake's surreal blues,
+            ancient monasteries perched on cliffs, Nubra Valley's
+            sand dunes, and the world's highest motorable roads.
+        </p>
+        <div class="dest-section-actions">
+            {% if user.is_authenticated %}
+            <a href="{% url 'chat' %}" class="btn-glass-accent btn-glass">
+                <i class="bi bi-magic"></i> Plan Ladakh Trip
+            </a>
+            {% else %}
+            <a href="{% url 'signup' %}" class="btn-glass-accent btn-glass">
+                <i class="bi bi-magic"></i> Plan Ladakh Trip
+            </a>
+            {% endif %}
+            <a href="#how-it-works" class="btn-glass">
+                <i class="bi bi-compass"></i> How It Works
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- KERALA -->
+<section class="dest-section" id="dest-kerala" aria-label="Kerala">
+    <div class="dest-section-bg" style="background-image: url('https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=1920&q=80');"></div>
+    <div class="dest-section-overlay"></div>
+    <div class="dest-section-content reveal">
+        <span class="dest-section-tag">Backwaters · Ayurveda · Tea Plantations</span>
+        <h2 class="dest-section-title">Kerala</h2>
+        <p class="dest-section-desc">
+            God's Own Country. Houseboat cruises through emerald
+            backwaters, Munnar's rolling tea gardens, Kathakali
+            performances, and the healing touch of Ayurveda.
+        </p>
+        <div class="dest-section-actions">
+            {% if user.is_authenticated %}
+            <a href="{% url 'chat' %}" class="btn-glass-accent btn-glass">
+                <i class="bi bi-magic"></i> Plan Kerala Trip
+            </a>
+            {% else %}
+            <a href="{% url 'signup' %}" class="btn-glass-accent btn-glass">
+                <i class="bi bi-magic"></i> Plan Kerala Trip
+            </a>
+            {% endif %}
+            <a href="#how-it-works" class="btn-glass">
+                <i class="bi bi-compass"></i> How It Works
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- MEGHALAYA -->
+<section class="dest-section" id="dest-meghalaya" aria-label="Meghalaya">
+    <div class="dest-section-bg" style="background-image: url('https://images.unsplash.com/photo-1477587458883-47145ed94245?w=1920&q=80');"></div>
+    <div class="dest-section-overlay"></div>
+    <div class="dest-section-content reveal">
+        <span class="dest-section-tag">Waterfalls · Caves · Living Bridges</span>
+        <h2 class="dest-section-title">Meghalaya</h2>
+        <p class="dest-section-desc">
+            The abode of clouds. Living root bridges woven by nature,
+            Cherrapunji's cascading waterfalls, crystal-clear rivers,
+            and the cleanest village in Asia.
+        </p>
+        <div class="dest-section-actions">
+            {% if user.is_authenticated %}
+            <a href="{% url 'chat' %}" class="btn-glass-accent btn-glass">
+                <i class="bi bi-magic"></i> Plan Meghalaya Trip
+            </a>
+            {% else %}
+            <a href="{% url 'signup' %}" class="btn-glass-accent btn-glass">
+                <i class="bi bi-magic"></i> Plan Meghalaya Trip
+            </a>
+            {% endif %}
+            <a href="#how-it-works" class="btn-glass">
+                <i class="bi bi-compass"></i> How It Works
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HOW IT WORKS
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="how-section" id="how-it-works" aria-label="How it works">
+    <div class="section-heading reveal">
+        <h2>How TripMind Works</h2>
+        <p>Three steps to your dream itinerary</p>
+    </div>
+
+    <div class="how-steps" data-stagger="150">
+        <div class="how-step stagger-child">
+            <div class="how-step-num">01</div>
+            <div class="how-step-icon">💬</div>
+            <h3>Tell Us Your Dream</h3>
+            <p>
+                Describe your destination, duration, budget, and travel style
+                in plain English. Our AI understands natural language — just
+                chat like you would with a friend.
+            </p>
+        </div>
+
+        <div class="how-step stagger-child">
+            <div class="how-step-num">02</div>
+            <div class="how-step-icon">🧠</div>
+            <h3>AI Builds Your Plan</h3>
+            <p>
+                Our AI agent researches real places, checks weather forecasts,
+                calculates budgets, and crafts a detailed day-by-day itinerary
+                tailored to your preferences.
+            </p>
+        </div>
+
+        <div class="how-step stagger-child">
+            <div class="how-step-num">03</div>
+            <div class="how-step-icon">🗺️</div>
+            <h3>Explore & Book</h3>
+            <p>
+                Browse your visual itinerary, view places on maps, compare
+                flights and hotels, download your PDF, and book everything
+                with one click.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     BOTTOM CTA
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="cta-section" aria-label="Call to action">
+    <div class="cta-section-bg" style="background-image: url('https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=1920&q=80');"></div>
+    <div class="cta-section-content reveal">
+        <h2>Ready to Start Your Journey?</h2>
+        <p>Join thousands of travelers who plan smarter with AI. It takes less than a minute.</p>
+        <a href="{% url 'signup' %}" class="btn-hero-primary" id="bottom-cta">
+            Get Started Free <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+{% block footer %}
+<!-- Premium Landing Footer -->
+<footer class="landing-footer" role="contentinfo">
+    <div class="landing-footer-grid">
+        <div class="landing-footer-brand">
+            <h3>✈ TripMind</h3>
+            <p>AI-powered travel planning that feels like magic. Explore India's most beautiful destinations with intelligently crafted itineraries.</p>
+        </div>
+        <div>
+            <h4>Destinations</h4>
+            <ul>
+                <li><a href="#dest-goa">Goa</a></li>
+                <li><a href="#dest-kashmir">Kashmir</a></li>
+                <li><a href="#dest-ladakh">Ladakh</a></li>
+                <li><a href="#dest-kerala">Kerala</a></li>
+                <li><a href="#dest-meghalaya">Meghalaya</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4>Product</h4>
+            <ul>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="{% url 'signup' %}">Get Started</a></li>
+                <li><a href="{% url 'login' %}">Sign In</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4>Company</h4>
+            <ul>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Privacy</a></li>
+                <li><a href="#">Terms</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="landing-footer-bottom">
+        &copy; 2025 TripMind AI &middot; Made with ❤️ in India
+    </div>
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Override hero CTA for authenticated users
+    {% if user.is_authenticated %}
+    document.addEventListener('DOMContentLoaded', function() {
+        var primaryCta = document.getElementById('hero-cta-primary');
+        if (primaryCta) {
+            primaryCta.href = '{% url "chat" %}';
+            primaryCta.innerHTML = 'Plan a Trip <i class="bi bi-arrow-right"></i>';
+        }
+        var bottomCta = document.getElementById('bottom-cta');
+        if (bottomCta) {
+            bottomCta.href = '{% url "chat" %}';
+            bottomCta.innerHTML = 'Plan a Trip <i class="bi bi-arrow-right"></i>';
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}

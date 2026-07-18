@@ -1,0 +1,15 @@
+Django>=5.0.6
+django-environ>=0.11.2
+whitenoise>=6.7.0
+psycopg[binary]
+gunicorn>=22.0.0
+langchain
+langgraph
+langchain-google-genai
+google-generativeai
+chromadb
+requests
+weasyprint
+resend
+razorpay
+sentry-sdk

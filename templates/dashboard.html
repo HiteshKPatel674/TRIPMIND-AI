@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Dashboard — TripMind AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- ===== GREETING ===== -->
+    <div class="mb-4 reveal">
+        <h2 style="font-family: 'Playfair Display', Georgia, serif; font-size: 1.75rem;">
+            {{ greeting }}, {{ user.first_name|default:user.email }} 👋
+        </h2>
+        <p class="text-muted" style="font-size: 0.9rem;">Here's your travel overview. Plan your next adventure today.</p>
+    </div>
+
+    <!-- ===== STATS ROW ===== -->
+    <div class="row g-3 mb-4" data-stagger="100">
+        <div class="col-md-4 stagger-child">
+            <div class="card stat-card">
+                <div class="stat-icon"><i class="bi bi-airplane"></i></div>
+                <div class="stat-number">{{ total_trips }}</div>
+                <div class="stat-label">Total Trips</div>
+            </div>
+        </div>
+        <div class="col-md-4 stagger-child">
+            <div class="card stat-card">
+                <div class="stat-icon"><i class="bi bi-calendar-month"></i></div>
+                <div class="stat-number">{{ this_month }}</div>
+                <div class="stat-label">This Month</div>
+            </div>
+        </div>
+        <div class="col-md-4 stagger-child">
+            <div class="card stat-card">
+                <div class="stat-icon"><i class="bi bi-wallet2"></i></div>
+                <div class="stat-number">₹{{ avg_budget|default:0|floatformat:0 }}</div>
+                <div class="stat-label">Avg Budget</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== START PLANNING CARD ===== -->
+    <div class="card mb-4 reveal" style="border-left: 3px solid var(--primary);">
+        <div class="card-body d-flex align-items-center gap-3">
+            <div style="font-size: 2.25rem; color: var(--primary); opacity: 0.8;">
+                <i class="bi bi-chat-dots-fill"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="mb-1" style="font-family: 'Playfair Display', Georgia, serif;">Plan a new trip</h5>
+                <p class="text-muted mb-0" style="font-size: 0.88rem;">Tell our AI assistant where you want to go, your budget, and travel style — we'll craft a detailed itinerary for you.</p>
+            </div>
+            <a href="{% url 'chat' %}" class="btn btn-primary">Start Planning</a>
+        </div>
+    </div>
+
+    <!-- ===== RECENT TRIPS ===== -->
+    <h4 class="mb-3 reveal" style="font-family: 'Playfair Display', Georgia, serif;">Recent Trips</h4>
+
+    {% if trips %}
+    <div class="row g-3" data-stagger="80">
+        {% for trip in trips %}
+        <div class="col-md-6 stagger-child">
+            <div class="card" style="overflow: hidden;">
+                <!-- Trip Image Header -->
+                <div style="height: 140px; background: url('https://source.unsplash.com/800x400/?{{ trip.destination|urlencode }},india') center/cover; position: relative;">
+                    <div style="position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, rgba(10,10,15,0.85) 100%);"></div>
+                    <div style="position: absolute; bottom: 0.75rem; left: 1rem; z-index: 2;">
+                        <h5 class="mb-0" style="color: #fff; font-family: 'Playfair Display', Georgia, serif;">{{ trip.destination }}</h5>
+                    </div>
+                    <div style="position: absolute; top: 0.75rem; right: 0.75rem; z-index: 2; display: flex; gap: 4px;">
+                        <span class="badge-{{ trip.category }}">{{ trip.get_category_display }}</span>
+                        <span class="badge-{{ trip.status }}">{{ trip.get_status_display }}</span>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="d-flex flex-column gap-1 mb-3" style="font-size: 0.85rem; color: var(--text-muted);">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-calendar3"></i>
+                            <span>{{ trip.num_days }} days</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-people"></i>
+                            <span>{{ trip.group_size }} travelers</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-currency-rupee"></i>
+                            <span>₹{{ trip.budget_inr|floatformat:0 }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Budget progress bar -->
+                    <div class="budget-bar mb-3">
+                        <div class="budget-bar-fill {% if trip.budget_used_pct <= 80 %}budget-green{% elif trip.budget_used_pct <= 100 %}budget-yellow{% else %}budget-red{% endif %}"
+                             style="width: {% if trip.budget_used_pct > 100 %}100{% else %}{{ trip.budget_used_pct }}{% endif %}%; height: 6px;">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'trip_detail' trip.pk %}" class="btn btn-sm btn-primary">View Plan</a>
+                        <a href="{% url 'trip_delete' trip.pk %}"
+                           class="btn btn-sm btn-outline-secondary"
+                           style="color: var(--danger);"
+                           onclick="return confirm('Delete this trip to {{ trip.destination }}? This cannot be undone.')">
+                            <i class="bi bi-trash3"></i> Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="card reveal">
+        <div class="card-body empty-state">
+            <i class="bi bi-compass"></i>
+            <h5>Your trips will appear here</h5>
+            <p class="text-muted">Start a conversation with TripMind AI to plan your first adventure.</p>
+            <a href="{% url 'chat' %}" class="btn btn-primary mt-2">Plan your first trip</a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

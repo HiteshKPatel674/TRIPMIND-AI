@@ -1,0 +1,697 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+{% block title %}{{ trip.destination }} Itinerary — TripMind AI{% endblock %}
+{% block meta_description %}Your AI-crafted {{ trip.num_days }}-day itinerary for {{ trip.destination }}. Explore attractions, food, hotels, and local experiences.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<link rel="stylesheet" href="{% static 'css/itinerary.css' %}">
+{% endblock %}
+
+{% block main_class %}itin-page{% endblock %}
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     CINEMATIC HERO
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="hero-section" id="hero-section">
+    <div class="hero-bg">
+        <div class="hero-bg-skeleton"></div>
+        <img class="hero-bg-img"
+             src="{% if hero_image %}{{ hero_image.url }}{% else %}{{ trip.cover_image_url }}{% endif %}"
+             alt="{{ trip.destination }}"
+             onload="this.classList.add('loaded')"
+             onerror="this.src='{{ trip.cover_image_url }}'; this.classList.add('loaded');">
+    </div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="hero-label">
+            <span class="hero-label-dot"></span>
+            AI-CRAFTED ITINERARY
+        </div>
+        <h1 class="hero-title">{{ trip.destination }}</h1>
+        <p class="hero-subtitle">
+            {% if trip.start_date %}
+                {{ trip.start_date|date:"M d" }} — {{ trip.end_date|date:"M d, Y" }}
+            {% endif %}
+            <span class="hero-subtitle-divider">·</span>
+            {{ trip.num_days }} Days
+            <span class="hero-subtitle-divider">·</span>
+            {{ trip.get_category_display }} Trip
+        </p>
+
+        <!-- Hero Stat Pills -->
+        <div class="hero-stats">
+            <div class="hero-pill">
+                <i class="bi bi-calendar3"></i>
+                <span class="hero-pill-value" data-counter="{{ trip.num_days }}">{{ trip.num_days }}</span>
+                <span class="hero-pill-label">Days</span>
+            </div>
+            <div class="hero-pill">
+                <i class="bi bi-people-fill"></i>
+                <span class="hero-pill-value">{{ trip.group_size }}</span>
+                <span class="hero-pill-label">Traveler{{ trip.group_size|pluralize }}</span>
+            </div>
+            <div class="hero-pill">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span class="hero-pill-value" data-counter="{{ trip_stats.total_activities }}">{{ trip_stats.total_activities }}</span>
+                <span class="hero-pill-label">Activities</span>
+            </div>
+            <div class="hero-pill">
+                <i class="bi bi-cash-stack"></i>
+                <span class="hero-pill-value">₹{{ trip_stats.total_cost|floatformat:0 }}</span>
+                <span class="hero-pill-label">Est. Cost</span>
+            </div>
+            {% if weather %}
+            <div class="hero-pill hero-pill-weather">
+                <i class="bi bi-cloud-sun-fill"></i>
+                <span class="hero-pill-value">{{ weather.temp_c }}°C</span>
+                <span class="hero-pill-label">{{ weather.description }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Hero Actions -->
+        <div class="hero-actions">
+            <a href="{% url 'chat' %}" class="hero-btn hero-btn-primary" id="hero-edit-trip">
+                <i class="bi bi-chat-dots"></i> Edit with AI
+            </a>
+            {% if is_paid %}
+            <a href="{% url 'trip_pdf' trip.pk %}" class="hero-btn hero-btn-glass" id="hero-download-pdf">
+                <i class="bi bi-download"></i> Download PDF
+            </a>
+            {% else %}
+            <button class="hero-btn hero-btn-glass" onclick="startPayment('{{ trip.pk }}')" id="hero-unlock-pdf">
+                <i class="bi bi-lock-fill"></i> Unlock PDF ₹99
+            </button>
+            {% endif %}
+            <a href="#booking-section" class="hero-btn hero-btn-glass" id="hero-book-now">
+                <i class="bi bi-calendar2-check"></i> Book Now
+            </a>
+        </div>
+    </div>
+    <div class="hero-scroll-hint">
+        <i class="bi bi-chevron-double-down"></i>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     DESTINATION GALLERY
+     ═══════════════════════════════════════════════════════════════════ -->
+{% if gallery_images %}
+<section class="gallery-section reveal" id="gallery-section">
+    <div class="container-itin">
+        <div class="gallery-grid">
+            {% for img in gallery_images %}
+            <div class="gallery-card stagger-child" style="animation-delay: {{ forloop.counter0|add:"0" }}00ms">
+                <img src="{{ img.url }}"
+                     alt="{{ trip.destination }} gallery"
+                     loading="lazy"
+                     onload="this.classList.add('loaded')"
+                     onerror="this.style.display='none'">
+                <div class="gallery-card-overlay">
+                    {% if img.attribution %}
+                    <span class="gallery-attribution">{{ img.attribution }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     MAIN CONTENT WITH SIDEBAR
+     ═══════════════════════════════════════════════════════════════════ -->
+
+<!-- Mobile sidebar toggle -->
+<button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle navigation">
+    <i class="bi bi-list"></i>
+</button>
+
+<div class="itin-layout">
+
+    <!-- ── SIDEBAR ────────────────────────────────────────────────── -->
+    <aside class="itin-sidebar" id="itin-sidebar">
+        <div class="sidebar-header">
+            <i class="bi bi-compass"></i>
+            <span>Trip Navigator</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a class="sidebar-nav-item active" data-target="panel-overview" href="#panel-overview">
+                <i class="bi bi-info-circle"></i>
+                <span>Overview</span>
+            </a>
+
+            {% for day_num, items in days.items %}
+            <a class="sidebar-nav-item" data-target="panel-day-{{ day_num }}" href="#panel-day-{{ day_num }}">
+                <i class="bi bi-{{ day_num }}{{ day_num|add:"0"|truncatechars:1 }}-circle"></i>
+                <div class="sidebar-day-info">
+                    <span class="sidebar-day-label">Day {{ day_num }}</span>
+                    <span class="sidebar-day-meta">{{ items|length }} activities</span>
+                </div>
+            </a>
+            {% endfor %}
+
+            <div class="sidebar-divider"></div>
+
+            <a class="sidebar-nav-item" data-target="panel-booking" href="#panel-booking">
+                <i class="bi bi-building"></i>
+                <span>Hotels & Transport</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- ── MAIN CONTENT ───────────────────────────────────────────── -->
+    <div class="itin-main">
+
+        <!-- ═══ OVERVIEW PANEL ════════════════════════════════════ -->
+        <div class="day-panel day-panel-active" id="panel-overview">
+
+            <!-- Knowledge Hub -->
+            {% if dest_info %}
+            <div class="knowledge-hub reveal" data-reveal-delay="100">
+                <h3 class="section-title">
+                    <i class="bi bi-book"></i> About {{ trip.destination }}
+                </h3>
+
+                <p class="overview-text" id="destination-description-text">
+                    {{ dest_info.summary }}
+                </p>
+
+                <!-- Quick Facts Grid -->
+                <div class="quick-facts-grid">
+                    <div class="fact-card">
+                        <i class="bi bi-translate"></i>
+                        <span class="fact-label">Language</span>
+                        <span class="fact-value">{{ dest_info.language }}</span>
+                    </div>
+                    <div class="fact-card">
+                        <i class="bi bi-currency-rupee"></i>
+                        <span class="fact-label">Currency</span>
+                        <span class="fact-value">{{ dest_info.currency }}</span>
+                    </div>
+                    <div class="fact-card">
+                        <i class="bi bi-clock"></i>
+                        <span class="fact-label">Timezone</span>
+                        <span class="fact-value">{{ dest_info.timezone }}</span>
+                    </div>
+                    <div class="fact-card">
+                        <i class="bi bi-calendar-heart"></i>
+                        <span class="fact-label">Best Season</span>
+                        <span class="fact-value">{{ dest_info.best_season }}</span>
+                    </div>
+                    <div class="fact-card">
+                        <i class="bi bi-telephone"></i>
+                        <span class="fact-label">Emergency</span>
+                        <span class="fact-value">{{ dest_info.emergency }}</span>
+                    </div>
+                    <div class="fact-card">
+                        <i class="bi bi-plug"></i>
+                        <span class="fact-label">Electricity</span>
+                        <span class="fact-value">{{ dest_info.electricity }}</span>
+                    </div>
+                </div>
+
+                <!-- Destination Highlights -->
+                <div class="dest-highlights">
+                    <div class="highlight-card">
+                        <i class="bi bi-star-fill"></i>
+                        <h4>Known For</h4>
+                        <p>{{ dest_info.known_for }}</p>
+                    </div>
+                    <div class="highlight-card">
+                        <i class="bi bi-car-front-fill"></i>
+                        <h4>Getting Around</h4>
+                        <p>{{ dest_info.transport }}</p>
+                    </div>
+                    <div class="highlight-card">
+                        <i class="bi bi-lightbulb-fill"></i>
+                        <h4>Local Tips</h4>
+                        <p>{{ dest_info.local_tips }}</p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="knowledge-hub reveal">
+                <h3 class="section-title"><i class="bi bi-book"></i> About {{ trip.destination }}</h3>
+                <p class="overview-text" id="destination-description-text">
+                    <span class="skeleton-text"></span>
+                    <span class="skeleton-text"></span>
+                    <span class="skeleton-text short"></span>
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- Budget Tracker -->
+            <div class="budget-strip reveal" data-reveal-delay="200">
+                <div class="budget-strip-info">
+                    <span class="budget-strip-label">Budget Tracker</span>
+                    <span class="budget-strip-values">
+                        ₹{{ trip_stats.total_cost|floatformat:0 }} of ₹{{ trip.budget_inr|floatformat:0 }}
+                    </span>
+                </div>
+                <div class="budget-strip-bar">
+                    <div class="budget-strip-fill {% if trip.active_version.budget_used_pct < 80 %}fill-green{% elif trip.active_version.budget_used_pct <= 100 %}fill-amber{% else %}fill-red{% endif %}"
+                         style="width: {% if trip.active_version.budget_used_pct > 100 %}100{% else %}{{ trip.active_version.budget_used_pct }}{% endif %}%;">
+                    </div>
+                </div>
+                <span class="budget-strip-pct">{{ trip.active_version.budget_used_pct }}%</span>
+            </div>
+
+            {% if weather and weather.rain_warning %}
+            <div class="weather-alert reveal" data-reveal-delay="300">
+                <i class="bi bi-umbrella-fill"></i>
+                <div>
+                    <strong>Rain expected!</strong> {{ weather.description }} — {{ weather.temp_c }}°C. Pack an umbrella and waterproof gear.
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Trip Stats Summary -->
+            <div class="trip-stats-grid reveal" data-reveal-delay="300">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="bi bi-camera"></i></div>
+                    <div class="stat-value" data-counter="{{ trip_stats.attraction_count }}">{{ trip_stats.attraction_count }}</div>
+                    <div class="stat-label">Attractions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="bi bi-egg-fried"></i></div>
+                    <div class="stat-value" data-counter="{{ trip_stats.food_count }}">{{ trip_stats.food_count }}</div>
+                    <div class="stat-label">Food Stops</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="bi bi-calendar3"></i></div>
+                    <div class="stat-value" data-counter="{{ trip_stats.total_days }}">{{ trip_stats.total_days }}</div>
+                    <div class="stat-label">Days</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="bi bi-cash-stack"></i></div>
+                    <div class="stat-value">₹{{ trip_stats.total_cost|floatformat:0 }}</div>
+                    <div class="stat-label">Total Cost</div>
+                </div>
+            </div>
+
+            <!-- Map -->
+            <div class="map-section reveal" data-reveal-delay="400">
+                <h3 class="section-title"><i class="bi bi-map"></i> Trip Map</h3>
+                <div class="map-container">
+                    <div id="itinerary-map" class="itinerary-map"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ DAY PANELS ════════════════════════════════════════ -->
+        {% for day_num, items in days.items %}
+        <div class="day-panel" id="panel-day-{{ day_num }}">
+
+            <!-- Day Header -->
+            <div class="day-header reveal">
+                <div class="day-header-left">
+                    <span class="day-watermark">{{ day_num }}</span>
+                    <div class="day-header-text">
+                        <h2 class="day-title">Day {{ day_num }}</h2>
+                        {% if trip.start_date %}
+                        <span class="day-date">
+                            {% load tz %}
+                            {% widthratio day_num 1 1 as day_offset %}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="day-header-badges">
+                    <span class="day-badge day-badge-count">
+                        <i class="bi bi-pin-map"></i> {{ items|length }} activities
+                    </span>
+                    <span class="day-badge day-badge-cost">
+                        <i class="bi bi-cash"></i> ₹{% for item in items %}{% if forloop.first %}{{ item.day_cost_sum|default:"0"|floatformat:0 }}{% endif %}{% endfor %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Trip Narrative -->
+            {% if day_narratives %}
+            {% for key, val in day_narratives.items %}
+            {% if key == day_num %}
+            <div class="day-narrative reveal">
+                <i class="bi bi-stars"></i>
+                <p>{{ val }}</p>
+            </div>
+            {% endif %}
+            {% endfor %}
+            {% endif %}
+
+            <!-- Timeline -->
+            <div class="timeline" data-stagger="120">
+                {% for item in items %}
+                {% with prev_item=items|slice:":forloop.counter0"|last %}
+
+                <!-- Time Period Divider -->
+                {% if forloop.first %}
+                <div class="time-divider time-{{ item.time_period }}">
+                    <span class="time-divider-icon">
+                        {% if item.time_period == 'morning' %}🌅{% elif item.time_period == 'afternoon' %}☀️{% elif item.time_period == 'evening' %}🌆{% else %}🌙{% endif %}
+                    </span>
+                    <span class="time-divider-label">{{ item.time_period|title }}</span>
+                    <span class="time-divider-line"></span>
+                </div>
+                {% elif prev_item.time_period != item.time_period %}
+                <div class="time-divider time-{{ item.time_period }}">
+                    <span class="time-divider-icon">
+                        {% if item.time_period == 'morning' %}🌅{% elif item.time_period == 'afternoon' %}☀️{% elif item.time_period == 'evening' %}🌆{% else %}🌙{% endif %}
+                    </span>
+                    <span class="time-divider-label">{{ item.time_period|title }}</span>
+                    <span class="time-divider-line"></span>
+                </div>
+                {% endif %}
+
+                <!-- Activity Card -->
+                <div class="tl-item type-{{ item.place_type }} period-{{ item.time_period }} stagger-child" id="item-{{ item.pk }}">
+                    <!-- Timeline Node -->
+                    <div class="tl-node" style="--cat-color: hsl({{ item.category_color }});">
+                        <div class="tl-node-dot"></div>
+                        <div class="tl-node-pulse"></div>
+                    </div>
+                    <div class="tl-time">{{ item.start_time|time:"g:i A" }}</div>
+
+                    <!-- Card -->
+                    <div class="activity-card" style="--cat-color: hsl({{ item.category_color }}); --cat-color-alpha: hsla({{ item.category_color }}, 0.12);">
+
+                        {% if item.place_type != 'transit' %}
+                        <!-- ── Full Card (Non-Transit) ── -->
+                        <div class="ac-image-wrapper" data-item-id="{{ item.pk }}">
+                            <div class="ac-image-skeleton"></div>
+                            <img class="ac-image contextual-img img-loading-blur"
+                                 src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
+                                 data-src=""
+                                 alt="{{ item.place_name }}">
+                            <div class="ac-image-overlay"></div>
+                            <div class="image-attribution" style="display: none;"></div>
+                            <span class="ac-category-badge" style="background: hsla({{ item.category_color }}, 0.9);">
+                                <i class="{{ item.category_icon }}"></i> {{ item.category_label }}
+                            </span>
+                            <span class="ac-duration-badge">
+                                <i class="bi bi-clock"></i> {{ item.duration_display }}
+                            </span>
+                        </div>
+
+                        <div class="ac-body">
+                            <div class="ac-header">
+                                <h3 class="ac-title">{{ item.place_name }}</h3>
+                                {% if item.rating %}
+                                <div class="ac-rating">
+                                    <i class="bi bi-star-fill"></i>
+                                    <span>{{ item.rating }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            {% if item.description %}
+                            <p class="ac-description">{{ item.description }}</p>
+                            {% endif %}
+
+                            <!-- AI Tip -->
+                            <div class="ac-ai-tip">
+                                <i class="bi bi-lightbulb-fill"></i>
+                                <span>{{ item.ai_tip }}</span>
+                            </div>
+
+                            <div class="ac-meta">
+                                <span class="ac-meta-time">
+                                    <i class="bi bi-clock"></i>
+                                    {{ item.start_time|time:"g:i A" }} — {{ item.end_time|time:"g:i A" }}
+                                </span>
+                                {% if item.cost_inr > 0 %}
+                                <span class="ac-meta-cost">
+                                    <i class="bi bi-tag"></i>
+                                    ₹{{ item.cost_inr|floatformat:0 }}
+                                </span>
+                                {% else %}
+                                <span class="ac-meta-cost ac-free">
+                                    <i class="bi bi-tag"></i> Free
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <div class="ac-actions">
+                                {% if item.maps_url %}
+                                <a href="{{ item.maps_url }}" target="_blank" rel="noopener" class="ac-action-btn ac-action-map">
+                                    <i class="bi bi-geo-alt"></i> Directions
+                                </a>
+                                {% endif %}
+                                <button class="ac-action-btn ac-action-save" onclick="this.classList.toggle('saved')" aria-label="Save activity">
+                                    <i class="bi bi-bookmark"></i>
+                                </button>
+                                <button class="ac-action-btn ac-action-share" onclick="shareActivity('{{ item.place_name|escapejs }}', '{{ trip.destination|escapejs }}')" aria-label="Share activity">
+                                    <i class="bi bi-share"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {% else %}
+                        <!-- ── Compact Card (Transit) ── -->
+                        <div class="ac-transit">
+                            <div class="ac-transit-icon" style="background: var(--cat-color-alpha);">
+                                <i class="{{ item.category_icon }}" style="color: var(--cat-color);"></i>
+                            </div>
+                            <div class="ac-transit-info">
+                                <span class="ac-transit-label">{{ item.category_label }}</span>
+                                <span class="ac-transit-name">{{ item.place_name }}</span>
+                            </div>
+                            <div class="ac-transit-meta">
+                                <span class="ac-transit-duration">
+                                    <i class="bi bi-clock"></i> {{ item.duration_display }}
+                                </span>
+                                {% if item.cost_inr > 0 %}
+                                <span class="ac-transit-cost">₹{{ item.cost_inr|floatformat:0 }}</span>
+                                {% endif %}
+                            </div>
+                            {% if item.maps_url %}
+                            <a href="{{ item.maps_url }}" target="_blank" rel="noopener" class="ac-transit-map">
+                                <i class="bi bi-geo-alt"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endwith %}
+                {% endfor %}
+
+                <!-- End of Day marker -->
+                <div class="tl-end-marker">
+                    <div class="tl-end-dot"></div>
+                </div>
+            </div>
+
+            <!-- Day Navigation -->
+            <div class="day-nav-buttons">
+                {% if not forloop.first %}
+                <button class="day-nav-btn day-prev-btn">
+                    <i class="bi bi-arrow-left"></i> Previous Day
+                </button>
+                {% else %}
+                <div></div>
+                {% endif %}
+                {% if not forloop.last %}
+                <button class="day-nav-btn day-next-btn">
+                    Next Day <i class="bi bi-arrow-right"></i>
+                </button>
+                {% else %}
+                <a href="#panel-booking" class="day-nav-btn day-next-btn" data-target="panel-booking" onclick="document.querySelector('[data-target=panel-booking]').click()">
+                    Hotels & Transport <i class="bi bi-arrow-right"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- ═══ BOOKING PANEL ═════════════════════════════════════ -->
+        <div class="day-panel" id="panel-booking">
+            <div class="booking-section" id="booking-section">
+                <div class="booking-header reveal">
+                    <div class="booking-header-icon">
+                        <i class="bi bi-stars"></i>
+                    </div>
+                    <div>
+                        <h3 class="booking-title">Smart Booking & Recommendations</h3>
+                        <p class="booking-subtitle">AI-curated transport and stay options for your trip</p>
+                    </div>
+                </div>
+
+                <div id="transport-loading" class="ai-thinking">
+                    <div class="ai-thinking-spinner">
+                        <div class="spinner-ring"></div>
+                        <div class="spinner-ring"></div>
+                        <div class="spinner-ring"></div>
+                    </div>
+                    <div class="ai-thinking-steps">
+                        <div class="ai-thinking-step">
+                            <span class="step-icon">✈️</span>
+                            <span>Searching flights...</span>
+                        </div>
+                        <div class="ai-thinking-step">
+                            <span class="step-icon">🚂</span>
+                            <span>Finding best trains...</span>
+                        </div>
+                        <div class="ai-thinking-step">
+                            <span class="step-icon">🏨</span>
+                            <span>Comparing hotels...</span>
+                        </div>
+                        <div class="ai-thinking-step">
+                            <span class="step-icon">💰</span>
+                            <span>Calculating best deals...</span>
+                        </div>
+                        <div class="ai-thinking-step">
+                            <span class="step-icon">🗺️</span>
+                            <span>Finding nearby options...</span>
+                        </div>
+                        <div class="ai-thinking-step">
+                            <span class="step-icon">⭐</span>
+                            <span>Almost ready...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="transport-container" style="display: none;">
+                    <div id="top-recommendations-container"></div>
+
+                    <h4 class="all-options-title">
+                        <i class="bi bi-collection"></i> All Options
+                    </h4>
+                    <ul class="nav nav-tabs booking-tabs" id="transportTabs" role="tablist">
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="hotels-tab" data-bs-toggle="tab" data-bs-target="#hotels-tab-pane" type="button" role="tab" aria-controls="hotels-tab-pane" aria-selected="true"><i class="bi bi-building"></i> Hotels</button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="flights-tab" data-bs-toggle="tab" data-bs-target="#flights-tab-pane" type="button" role="tab" aria-controls="flights-tab-pane" aria-selected="false"><i class="bi bi-airplane"></i> Flights</button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="trains-tab" data-bs-toggle="tab" data-bs-target="#trains-tab-pane" type="button" role="tab" aria-controls="trains-tab-pane" aria-selected="false"><i class="bi bi-train-front"></i> Trains</button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="buses-tab" data-bs-toggle="tab" data-bs-target="#buses-tab-pane" type="button" role="tab" aria-controls="buses-tab-pane" aria-selected="false"><i class="bi bi-bus-front"></i> Buses</button>
+                      </li>
+                    </ul>
+                    <div class="tab-content booking-tab-content" id="transportTabsContent">
+                      <div class="tab-pane fade show active" id="hotels-tab-pane" role="tabpanel" aria-labelledby="hotels-tab" tabindex="0">
+                         <div class="row" id="all-hotels-container"></div>
+                      </div>
+                      <div class="tab-pane fade" id="flights-tab-pane" role="tabpanel" aria-labelledby="flights-tab" tabindex="0">
+                         <div id="all-flights-container"></div>
+                      </div>
+                      <div class="tab-pane fade" id="trains-tab-pane" role="tabpanel" aria-labelledby="trains-tab" tabindex="0">
+                         <div id="all-trains-container"></div>
+                      </div>
+                      <div class="tab-pane fade" id="buses-tab-pane" role="tabpanel" aria-labelledby="buses-tab" tabindex="0">
+                         <div id="all-buses-container"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- .itin-main -->
+</div><!-- .itin-layout -->
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="{% static 'js/payment.js' %}"></script>
+<script src="{% static 'js/transport.js' %}"></script>
+<script src="{% static 'js/itinerary_engine.js' %}"></script>
+<script src="{% static 'js/day_navigation.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        renderTransport('{{ trip.pk }}');
+
+        // Initialize Map
+        const map = L.map('itinerary-map').setView([20.5937, 78.9629], 4);
+        const destination = "{{ trip.destination|escapejs }}";
+
+        // Dark theme map tiles
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+
+        // Geocode places and add markers
+        const placesToGeocode = [];
+
+        {% for day_num, items in days.items %}
+            {% for item in items %}
+                {% if item.place_type != 'transit' %}
+                    placesToGeocode.push({
+                        id: 'item-{{ item.pk }}',
+                        name: "{{ item.place_name|escapejs }}",
+                        day: {{ day_num }},
+                        icon: "{{ item.category_icon|escapejs }}",
+                        color: "hsl({{ item.category_color|escapejs }})"
+                    });
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+
+        let bounds = L.latLngBounds();
+        let validMarkers = 0;
+
+        // Geocode destination first
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destination)}`)
+            .then(r => r.json())
+            .then(data => {
+                if(data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lon = parseFloat(data[0].lon);
+                    map.setView([lat, lon], 12);
+                    bounds.extend([lat, lon]);
+
+                    placesToGeocode.forEach((place, idx) => {
+                        const offsetLat = (Math.random() - 0.5) * 0.05;
+                        const offsetLon = (Math.random() - 0.5) * 0.05;
+                        const pLat = lat + offsetLat;
+                        const pLon = lon + offsetLon;
+
+                        const markerHtml = `<div style="background-color: ${place.color}; width: 30px; height: 30px; border-radius: 50%; border: 3px solid #1a1a2e; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.5);"><i class="${place.icon}"></i></div>`;
+
+                        const customIcon = L.divIcon({
+                            html: markerHtml,
+                            className: 'custom-map-marker',
+                            iconSize: [30, 30],
+                            iconAnchor: [15, 15]
+                        });
+
+                        const marker = L.marker([pLat, pLon], {icon: customIcon}).addTo(map);
+                        marker.bindPopup(`<b>Day ${place.day}: ${place.name}</b>`);
+                        bounds.extend([pLat, pLon]);
+                        validMarkers++;
+
+                        const card = document.getElementById(place.id);
+                        if(card) {
+                            card.addEventListener('mouseenter', () => {
+                                marker.openPopup();
+                                map.panTo([pLat, pLon]);
+                            });
+                        }
+                    });
+                    if (validMarkers > 0) {
+                        map.fitBounds(bounds, {padding: [50, 50]});
+                    }
+                }
+            }).catch(() => {});
+
+        // Invalidate map size after panel switch (needed for Leaflet)
+        document.querySelectorAll('.sidebar-nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                setTimeout(() => map.invalidateSize(), 350);
+            });
+        });
+    });
+</script>
+{% endblock %}

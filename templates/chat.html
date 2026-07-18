@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Chat — TripMind AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row g-4">
+
+        <!-- ===== CHAT AREA (Left) ===== -->
+        <div class="col-lg-8">
+            <div class="chat-box">
+                <!-- Chat Header -->
+                <div class="chat-header">
+                    <span class="online-dot"></span>
+                    TripMind AI
+                    <span style="margin-left: auto; font-size: 0.72rem; color: var(--text-muted); font-weight: 400;">
+                        <i class="bi bi-lightning-charge-fill" style="color: var(--primary);"></i> Powered by AI
+                    </span>
+                </div>
+
+                <!-- Messages Container -->
+                <div id="chat-messages">
+                    <!-- Welcome message -->
+                    <div class="msg msg-ai">
+                        <span class="ai-label">TripMind AI</span>
+                        <span class="ai-text">Hi! I'm TripMind, your AI travel planner. ✨<br><br>Tell me where you'd like to go, how many days, your budget, and your travel style.<br><br>For example: <em>"Goa 5 days ₹60,000 beaches and food"</em></span>
+                    </div>
+                </div>
+
+                <!-- Loading Indicator -->
+                <div id="chat-spinner" class="htmx-indicator bouncing-dots">
+                    <span></span><span></span><span></span>
+                </div>
+
+                <!-- Chat Input Form -->
+                <form class="chat-input"
+                      hx-post="{% url 'chat_send' %}"
+                      hx-target="#chat-messages"
+                      hx-swap="beforeend"
+                      hx-indicator="#chat-spinner">
+                    {% csrf_token %}
+                    <input type="hidden" name="session_id" value="{{ session.id }}">
+                    <input type="text"
+                           name="message"
+                           id="chat-input-field"
+                           class="form-control"
+                           placeholder="Describe your dream trip..."
+                           autocomplete="off"
+                           required
+                           aria-label="Trip description">
+                    <button type="submit" class="btn btn-primary" aria-label="Send message">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Quick Edit Suggestions (shown after itinerary) -->
+            {% if session.trip %}
+            <div class="card mt-3" style="border-left: 3px solid var(--primary);">
+                <div class="card-body py-3">
+                    <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 0.75rem;">
+                        <i class="bi bi-magic" style="color: var(--primary);"></i> Quick Edits
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="badge-general example-prompt" style="cursor: pointer; border: 1px solid var(--border);" data-prompt="Make it more budget-friendly">💰 Cheaper</button>
+                        <button type="button" class="badge-general example-prompt" style="cursor: pointer; border: 1px solid var(--border);" data-prompt="Make it a luxury version">✨ Luxury</button>
+                        <button type="button" class="badge-general example-prompt" style="cursor: pointer; border: 1px solid var(--border);" data-prompt="Make it kid-friendly with family activities">👶 Kid Friendly</button>
+                        <button type="button" class="badge-general example-prompt" style="cursor: pointer; border: 1px solid var(--border);" data-prompt="Focus on adventure and outdoor activities">🏔️ Adventure</button>
+                        <button type="button" class="badge-general example-prompt" style="cursor: pointer; border: 1px solid var(--border);" data-prompt="Focus on food and local cuisine">🍽️ Food Focused</button>
+                        <button type="button" class="badge-general example-prompt" style="cursor: pointer; border: 1px solid var(--border);" data-prompt="Make it a relaxed pace itinerary">🧘 Relaxed</button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ===== SIDEBAR (Right) ===== -->
+        <div class="col-lg-4">
+
+            <!-- Your Details So Far -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h6 class="text-uppercase mb-3" style="font-size: 0.72rem; letter-spacing: 1.5px; color: var(--text-muted);">Your details so far</h6>
+
+                    {% if session.graph_state.destination %}
+                    <div class="intent-row">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <span class="text-muted">Destination:</span>
+                        <strong>{{ session.graph_state.destination }}</strong>
+                    </div>
+                    {% endif %}
+
+                    {% if session.graph_state.num_days %}
+                    <div class="intent-row">
+                        <i class="bi bi-calendar3"></i>
+                        <span class="text-muted">Days:</span>
+                        <strong>{{ session.graph_state.num_days }}</strong>
+                    </div>
+                    {% endif %}
+
+                    {% if session.graph_state.budget_inr %}
+                    <div class="intent-row">
+                        <i class="bi bi-currency-rupee"></i>
+                        <span class="text-muted">Budget:</span>
+                        <strong>₹{{ session.graph_state.budget_inr|floatformat:0 }}</strong>
+                    </div>
+                    {% endif %}
+
+                    {% if session.graph_state.group_size %}
+                    <div class="intent-row">
+                        <i class="bi bi-people-fill"></i>
+                        <span class="text-muted">Group:</span>
+                        <strong>{{ session.graph_state.group_size }} travelers</strong>
+                    </div>
+                    {% endif %}
+
+                    {% if session.graph_state.category %}
+                    <div class="intent-row">
+                        <i class="bi bi-tag-fill"></i>
+                        <span class="text-muted">Style:</span>
+                        <strong>{{ session.graph_state.category }}</strong>
+                    </div>
+                    {% endif %}
+
+                    {% if session.graph_state.origin_city %}
+                    <div class="intent-row">
+                        <i class="bi bi-pin-map-fill"></i>
+                        <span class="text-muted">From:</span>
+                        <strong>{{ session.graph_state.origin_city }}</strong>
+                    </div>
+                    {% endif %}
+
+                    {% if not session.graph_state.destination and not session.graph_state.num_days and not session.graph_state.budget_inr %}
+                    <p class="text-muted mb-0" style="font-size: 0.82rem;">
+                        <i class="bi bi-info-circle"></i> Start chatting and your trip details will appear here automatically.
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Try Asking -->
+            <div class="sidebar-section">
+                <h6>Try asking</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for prompt in example_prompts %}
+                    <button type="button"
+                            class="badge-general example-prompt"
+                            style="cursor: pointer; border: 1px solid var(--border);"
+                            data-prompt="{{ prompt }}">
+                        {{ prompt }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="sidebar-section">
+                <h6>Tips</h6>
+                <div class="tip-item">
+                    <i class="bi bi-lightbulb" style="color: var(--warning);"></i>
+                    <span>Be specific — mention your city, budget, and travel dates for the best results.</span>
+                </div>
+                <div class="tip-item">
+                    <i class="bi bi-lightbulb" style="color: var(--warning);"></i>
+                    <span>Mention your interests like "beaches", "temples", "food tour", or "adventure sports".</span>
+                </div>
+                <div class="tip-item">
+                    <i class="bi bi-lightbulb" style="color: var(--warning);"></i>
+                    <span>You can ask follow-up questions — "Add a day in Munnar" or "Make it more budget-friendly".</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input-field');
+
+    // Before HTMX request is sent: clear input, append user message, and scroll to bottom
+    document.body.addEventListener('htmx:beforeRequest', function (event) {
+        if (event.detail.elt.closest('.chat-input')) {
+            const userMsg = chatInput.value.trim();
+            if (userMsg) {
+                // Append user message immediately
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'msg msg-user';
+
+                const span = document.createElement('span');
+                span.textContent = userMsg;
+                msgDiv.appendChild(span);
+
+                chatMessages.appendChild(msgDiv);
+
+                chatInput.value = '';
+
+                setTimeout(function () {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 10);
+            }
+        }
+    });
+
+    // After HTMX request completes: focus input & scroll to bottom
+    document.body.addEventListener('htmx:afterRequest', function (event) {
+        if (event.detail.elt.closest('.chat-input')) {
+            chatInput.focus();
+            setTimeout(function () {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 50);
+        }
+    });
+
+    // Example prompt clicks fill the input
+    document.querySelectorAll('.example-prompt').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            chatInput.value = this.getAttribute('data-prompt');
+            chatInput.focus();
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up — TripMind AI{% endblock %}
+{% block meta_description %}Create your free TripMind AI account and start planning AI-powered trips today.{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="text-center mb-4">
+            <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">✈️</div>
+            <h2>Create your account</h2>
+            <p class="auth-subtitle">Start planning trips in under a minute</p>
+        </div>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% for field in form %}
+            <div class="mb-3">
+                <label for="{{ field.id_for_label }}" class="form-label">
+                    {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <div class="invalid-feedback d-block" style="color: var(--danger); font-size: 0.82rem;">
+                    {% for error in field.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% if field.help_text %}
+                <div class="form-text" style="color: var(--text-muted); font-size: 0.78rem;">{{ field.help_text }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger py-2" role="alert" style="font-size: 0.85rem;">
+                {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary w-100 py-2 mt-2" style="font-weight: 600;">
+                <i class="bi bi-person-plus me-2"></i>Create Account
+            </button>
+        </form>
+
+        <p class="text-center mt-4 mb-0" style="font-size: 0.85rem; color: var(--text-muted);">
+            Already have an account?
+            <a href="{% url 'login' %}" style="color: var(--primary); font-weight: 600;">Log in</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
